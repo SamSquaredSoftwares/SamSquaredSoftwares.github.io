@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact &amp; Book a Demo &mdash; SAM²</title>
+  <meta name="description" content="Talk to Sam Squared Softwares about SAMePOS. Book a demo or request a tailored quote for your venue." />
+  <link rel="icon" type="image/png" href="/logo.png" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div id="nav-placeholder"></div>
+
+  <section class="page-head">
+    <div class="container">
+      <h1>Book a demo</h1>
+      <p>Tell us about your venue and we'll show you SAMePOS against your own numbers &mdash; then tailor a quote to fit.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="contact-grid">
+        <div class="contact-info">
+          <h3>Get in touch</h3>
+          <p>We usually respond within one business day. Whether you run a single venue or a group, we'll help you work out which mode fits.</p>
+          <div class="line"><b>Email:</b>&nbsp;<a href="mailto:hello@samsquaredsoftwares.com">hello@samsquaredsoftwares.com</a></div>
+          <div class="line"><b>Sales:</b>&nbsp;<a href="mailto:sales@samsquaredsoftwares.com">sales@samsquaredsoftwares.com</a></div>
+          <div class="line"><b>Based in:</b>&nbsp;South Africa</div>
+          <p style="margin-top:24px;color:var(--muted);font-size:14px;">Prefer email? Just write to us directly and mention your venue type and how many stations you run.</p>
+        </div>
+
+        <form class="contact" action="https://formsubmit.co/hello@samsquaredsoftwares.com" method="POST">
+          <label for="name">Name</label>
+          <input id="name" name="name" type="text" placeholder="Your name" required />
+
+          <label for="email">Work email</label>
+          <input id="email" name="email" type="email" placeholder="you@venue.com" required />
+
+          <label for="venue">Venue / company</label>
+          <input id="venue" name="venue" type="text" placeholder="Your venue name" />
+
+          <label for="interest">I'm interested in</label>
+          <select id="interest" name="interest">
+            <option>Stock Sidecar</option>
+            <option>Full POS</option>
+            <option>Enterprise / multi-venue</option>
+            <option>Just exploring</option>
+          </select>
+
+          <label for="message">Message</label>
+          <textarea id="message" name="message" rows="4" placeholder="Tell us a little about your venue..."></textarea>
+
+          <button type="submit" class="btn btn-primary" style="width:100%;border:none;">Request a demo</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer-placeholder"></div>
+  <script src="/script.js"></script>
+</body>
+</html>
