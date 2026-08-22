@@ -3,80 +3,144 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SAM² &mdash; Smarter Softwares. Squared.</title>
+  <title>SAM&#178; &mdash; Smarter Softwares. Squared.</title>
   <meta name="description" content="SAMePOS by Sam Squared Softwares: an AI-integrated point-of-sale and stock-control platform for hospitality and retail. Stop margin leaks, automate cash-ups and catch loss in real time." />
   <link rel="icon" type="image/png" href="/logo.png" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <div id="nav-placeholder"></div>
+  <a class="skip-link" href="#main">Skip to content</a>
 
-  <header class="hero">
-    <div class="hero-inner">
-      <img src="/logo.png" alt="SAM² &mdash; Smarter Softwares. Squared." class="hero-logo" />
-      <h1 class="hero-title">Smarter Softwares. <span class="accent">Squared.</span></h1>
-      <p class="hero-sub">
-        SAMePOS is an AI-integrated point-of-sale and stock-control platform for
-        premium hospitality and retail &mdash; stopping margin leaks, automating
-        cash-ups, and catching loss the moment it happens.
-      </p>
-      <div class="hero-cta">
-        <a href="/product.html" class="btn btn-primary">Explore the platform</a>
-        <a href="/contact.html" class="btn btn-ghost">Book a demo</a>
-      </div>
+  <nav class="nav" aria-label="Main">
+    <div class="nav-inner">
+      <a class="nav-brand" href="/"><img src="/logo.png" alt="SAM&#178; home" width="88" height="34" /></a>
+      <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">&#9776;</button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="/" aria-current="page">Home</a></li>
+        <li class="nav-item">
+          <button class="nav-item-toggle" type="button" aria-expanded="false" aria-controls="menu-product">Product <span class="caret" aria-hidden="true"></span></button>
+          <div class="dropdown" id="menu-product">
+            <a href="/product.html#echo">Echo Engine<small>Universal POS data interchange</small></a>
+            <a href="/product.html#invoice">AI Invoice-to-Stock<small>Automated supplier processing</small></a>
+            <a href="/product.html#detection">Loss Prevention<small>Real-time anomaly detection</small></a>
+            <a href="/product.html#stocktake">Stocktake &amp; Cash-up<small>Scan, weigh, reconcile</small></a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <button class="nav-item-toggle" type="button" aria-expanded="false" aria-controls="menu-solutions">Solutions <span class="caret" aria-hidden="true"></span></button>
+          <div class="dropdown" id="menu-solutions">
+            <a href="/how-it-works.html#full">Full POS Mode<small>Replace your point of sale</small></a>
+            <a href="/how-it-works.html#sidecar">Stock Sidecar Mode<small>Add on to your existing POS</small></a>
+            <a href="/how-it-works.html">How It Works<small>The end-to-end flow</small></a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <button class="nav-item-toggle" type="button" aria-expanded="false" aria-controls="menu-company">Company <span class="caret" aria-hidden="true"></span></button>
+          <div class="dropdown" id="menu-company">
+            <a href="/about.html">About<small>Who we are</small></a>
+            <a href="/pricing.html">Pricing<small>Plans &amp; licensing</small></a>
+            <a href="/contact.html">Contact<small>Talk to us</small></a>
+          </div>
+        </li>
+        <li><a class="nav-cta" href="/contact.html">Book a demo</a></li>
+      </ul>
     </div>
-  </header>
+  </nav>
 
-  <section class="section">
+  <main id="main">
+    <header class="hero">
+      <div class="hero-inner">
+        <img src="/logo.png" alt="SAM&#178;" class="hero-logo" width="248" height="96" />
+        <h1 class="hero-title">Smarter Softwares. <span class="accent">Squared.</span></h1>
+        <p class="hero-sub">
+          SAMePOS is an AI-integrated point-of-sale and stock-control platform for
+          premium hospitality and retail &mdash; stopping margin leaks, automating
+          cash-ups, and catching loss the moment it happens.
+        </p>
+        <div class="hero-cta">
+          <a href="/product.html" class="btn btn-primary">Explore the platform</a>
+          <a href="/contact.html" class="btn btn-ghost">Book a demo</a>
+        </div>
+      </div>
+    </header>
+
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title">Built for high-value, fast-moving venues</h2>
+        <p class="section-lead">
+          Premium venues run on fast stock and high-pressure closes &mdash; exactly where
+          margin quietly disappears. SAMePOS gives owners real-time visibility that used
+          to arrive weeks too late.
+        </p>
+        <div class="grid grid-3">
+          <div class="card">
+            <h3>Stop the shrinkage</h3>
+            <p>Deterministic rules, statistical baselines and learned models flag voids, comps and stock variances as they happen &mdash; not at month-end.</p>
+          </div>
+          <div class="card">
+            <h3>Automate the busywork</h3>
+            <p>Per-staff, per-tender cash-ups and supplier-invoice-to-stock processing are reconstructed automatically from your existing data.</p>
+          </div>
+          <div class="card">
+            <h3>Plug in, don't rip out</h3>
+            <p>Run SAMePOS as a full point of sale, or as a read-only "sidecar" beside your existing system. Adopt the AI layer with zero disruption.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-alt">
+      <div class="container">
+        <h2 class="section-title">Two ways to run it</h2>
+        <div class="grid grid-2">
+          <div class="card card-lg">
+            <h3>Full POS Mode</h3>
+            <p>SAMePOS becomes your point of sale outright &mdash; fast bartender sales, tabs that follow guests, split payments, PIN-gated voids, live pricing and a roaming event dashboard.</p>
+          </div>
+          <div class="card card-lg">
+            <h3>Standalone Stock Sidecar</h3>
+            <p>Keep your existing POS for sales. SAMePOS reads its nightly export and layers on stock control, variance analysis, cash-up automation and loss prevention &mdash; a low-risk wedge you can graduate from later.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section cta-band">
+      <div class="container cta-inner">
+        <h2>Ready to see where your margin is going?</h2>
+        <p>Book a walkthrough of SAMePOS against your own venue's data.</p>
+        <a href="/contact.html" class="btn btn-primary">Book a demo</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
     <div class="container">
-      <h2 class="section-title">Built for high-value, fast-moving venues</h2>
-      <p class="section-lead">
-        Premium venues run on fast stock and high-pressure closes &mdash; exactly where
-        margin quietly disappears. SAMePOS gives owners real-time visibility that used
-        to arrive weeks too late.
-      </p>
-      <div class="grid grid-3">
-        <div class="card">
-          <h3>Stop the shrinkage</h3>
-          <p>Deterministic rules, statistical baselines and learned models flag voids, comps and stock variances as they happen &mdash; not at month-end.</p>
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img src="/logo.png" alt="" width="78" height="30" />
+          <p>SAMePOS by Sam Squared Softwares &mdash; an AI-integrated point-of-sale and stock-control platform for hospitality and retail.</p>
         </div>
-        <div class="card">
-          <h3>Automate the busywork</h3>
-          <p>Per-staff, per-tender cash-ups and supplier-invoice-to-stock processing are reconstructed automatically from your existing data.</p>
+        <div>
+          <h2>Product</h2>
+          <ul>
+            <li><a href="/product.html">Features</a></li>
+            <li><a href="/how-it-works.html">How It Works</a></li>
+            <li><a href="/pricing.html">Pricing</a></li>
+          </ul>
         </div>
-        <div class="card">
-          <h3>Plug in, don't rip out</h3>
-          <p>Run SAMePOS as a full point of sale, or as a read-only "sidecar" beside your existing system. Adopt the AI layer with zero disruption.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section section-alt">
-    <div class="container">
-      <h2 class="section-title">Two ways to run it</h2>
-      <div class="grid grid-2">
-        <div class="card card-lg">
-          <h3>Full POS Mode</h3>
-          <p>SAMePOS becomes your point of sale outright &mdash; fast bartender sales, tabs that follow guests, split payments, PIN-gated voids, live pricing and a roaming event dashboard.</p>
-        </div>
-        <div class="card card-lg">
-          <h3>Standalone Stock Sidecar</h3>
-          <p>Keep your existing POS for sales. SAMePOS reads its nightly export and layers on stock control, variance analysis, cash-up automation and loss prevention &mdash; a low-risk wedge you can graduate from later.</p>
+        <div>
+          <h2>Company</h2>
+          <ul>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/contact.html">Contact</a></li>
+            <li><a href="/contact.html">Book a demo</a></li>
+          </ul>
         </div>
       </div>
+      <div class="footer-bottom">&copy; <span id="year">2026</span> Sam Squared Softwares (Pty) Ltd. All rights reserved. &nbsp;&#8226;&nbsp; Smarter Softwares. Squared.</div>
     </div>
-  </section>
-
-  <section class="section cta-band">
-    <div class="container cta-inner">
-      <h2>Ready to see where your margin is going?</h2>
-      <p>Book a walkthrough of SAMePOS against your own venue's data.</p>
-      <a href="/contact.html" class="btn btn-primary">Book a demo</a>
-    </div>
-  </section>
-
-  <div id="footer-placeholder"></div>
+  </footer>
   <script src="/script.js"></script>
 </body>
 </html>

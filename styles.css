@@ -29,6 +29,21 @@ body {
 a { color: var(--blue-bright); text-decoration: none; }
 a:hover { color: var(--white); }
 
+/* ---------- Focus & screen-reader helpers ---------- */
+:focus-visible { outline: 2px solid var(--blue-bright); outline-offset: 2px; border-radius: 4px; }
+
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 200;
+  background: var(--blue); color: #04121f; font-weight: 600;
+  padding: 12px 20px; border-radius: 0 0 8px 0;
+}
+.skip-link:focus { left: 0; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
 .container { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
 
 /* ---------- Navigation ---------- */
@@ -61,13 +76,15 @@ a:hover { color: var(--white); }
   padding: 8px; box-shadow: 0 20px 50px rgba(0,0,0,.5);
   opacity: 0; visibility: hidden; transform: translateY(6px); transition: all .18s ease;
 }
-.nav-item.open .dropdown, .nav-item:hover .dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
+.nav-item.open .dropdown, .nav-item:hover .dropdown, .nav-item:focus-within .dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
 .dropdown a { display: block; padding: 10px 12px; border-radius: 8px; color: var(--text); }
 .dropdown a:hover { background: var(--bg-2); color: var(--blue-bright); }
 .dropdown a small { display: block; color: var(--muted); font-size: 12.5px; font-weight: 400; }
 
-.nav-cta { background: var(--blue); color: #04121f !important; padding: 9px 18px !important; border-radius: 8px; font-weight: 600; }
-.nav-cta:hover { background: var(--blue-bright); color: #04121f !important; }
+/* Specificity must beat `.nav-links > li > a` (0,1,2), which sets `background: none`;
+   without that the pill never painted and left near-black text on the dark bar. */
+.nav-links > li > a.nav-cta { background: var(--blue); color: #04121f; padding: 9px 18px; border-radius: 8px; font-weight: 600; }
+.nav-links > li > a.nav-cta:hover { background: var(--blue-bright); color: #04121f; }
 
 .nav-toggle { display: none; background: none; border: none; color: var(--text); font-size: 26px; cursor: pointer; }
 
@@ -77,6 +94,7 @@ a:hover { color: var(--white); }
 .btn-primary:hover { background: var(--blue-bright); color: #04121f; transform: translateY(-1px); }
 .btn-ghost { border: 1px solid var(--border); color: var(--text); }
 .btn-ghost:hover { border-color: var(--blue); color: var(--white); }
+.btn-block { width: 100%; border: none; }
 
 /* ---------- Hero ---------- */
 .hero {
@@ -108,7 +126,7 @@ a:hover { color: var(--white); }
   padding: 28px; transition: all .2s;
 }
 .card:hover { border-color: var(--blue-dim); transform: translateY(-3px); }
-.card h3 { margin: 0 0 10px; font-size: 20px; color: var(--white); }
+.card h2, .card h3 { margin: 0 0 10px; font-size: 20px; color: var(--white); }
 .card p { margin: 0; color: var(--muted); }
 .card-lg { padding: 36px; }
 .card .eyebrow { color: var(--blue-bright); font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
@@ -135,7 +153,7 @@ a:hover { color: var(--white); }
 .plan { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px 28px; display: flex; flex-direction: column; }
 .plan.featured { border-color: var(--blue); box-shadow: 0 12px 40px rgba(46,163,255,.15); }
 .plan .badge { align-self: flex-start; background: var(--blue); color: #04121f; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 14px; }
-.plan h3 { margin: 0 0 6px; font-size: 22px; }
+.plan h2, .plan h3 { margin: 0 0 6px; font-size: 22px; }
 .plan .price { font-size: 20px; color: var(--blue-bright); font-weight: 700; margin: 8px 0 18px; }
 .plan ul { list-style: none; padding: 0; margin: 0 0 26px; flex-grow: 1; }
 .plan li { padding: 8px 0 8px 26px; position: relative; color: var(--text); border-bottom: 1px solid var(--border); }
@@ -152,6 +170,7 @@ a:hover { color: var(--white); }
 
 /* ---------- Contact ---------- */
 .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 960px; margin: 0 auto; }
+.contact-info h2 { margin: 0 0 10px; font-size: 20px; color: var(--white); }
 .contact-info p { color: var(--muted); }
 .contact-info .line { display: flex; gap: 10px; margin-bottom: 14px; }
 .contact-info .line b { color: var(--white); }
@@ -161,14 +180,16 @@ form.contact input, form.contact textarea, form.contact select {
   width: 100%; padding: 12px 14px; margin-bottom: 18px; background: var(--bg-2);
   border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: inherit; font-size: 15px;
 }
-form.contact input:focus, form.contact textarea:focus { outline: none; border-color: var(--blue); }
+form.contact input:focus, form.contact textarea:focus, form.contact select:focus {
+  outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(46, 163, 255, .35);
+}
 
 /* ---------- Footer ---------- */
 .footer { border-top: 1px solid var(--border); background: var(--bg-2); padding: 50px 0 30px; margin-top: 20px; }
 .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 30px; }
-.footer-brand img { height: 30px; margin-bottom: 12px; }
+.footer-brand img { height: 30px; width: auto; margin-bottom: 12px; }
 .footer-brand p { color: var(--muted); max-width: 320px; font-size: 14.5px; }
-.footer h4 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin: 0 0 14px; }
+.footer h2, .footer h4 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin: 0 0 14px; }
 .footer ul { list-style: none; padding: 0; margin: 0; }
 .footer ul li { margin-bottom: 10px; }
 .footer ul a { color: var(--text); font-size: 14.5px; }
@@ -188,4 +209,16 @@ form.contact input:focus, form.contact textarea:focus { outline: none; border-co
   .dropdown { position: static; opacity: 1; visibility: visible; transform: none; box-shadow: none; border: none; padding: 0 0 0 14px; min-width: auto; display: none; }
   .nav-item.open .dropdown { display: block; }
   .nav-item:hover .dropdown { opacity: 1; }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .card:hover, .btn-primary:hover { transform: none; }
 }

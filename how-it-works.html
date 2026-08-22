@@ -3,61 +3,125 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How It Works &mdash; SAM²</title>
+  <title>How It Works &mdash; SAM&#178;</title>
   <meta name="description" content="How SAMePOS deploys: as a full point-of-sale replacement, or as a low-risk read-only stock sidecar beside your existing system." />
   <link rel="icon" type="image/png" href="/logo.png" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <div id="nav-placeholder"></div>
+  <a class="skip-link" href="#main">Skip to content</a>
 
-  <section class="page-head">
-    <div class="container">
-      <h1>How SAMePOS works</h1>
-      <p>Adopt the AI layer with zero disruption, then graduate to a full point of sale when you're ready. Two modes, one platform.</p>
+  <nav class="nav" aria-label="Main">
+    <div class="nav-inner">
+      <a class="nav-brand" href="/"><img src="/logo.png" alt="SAM&#178; home" width="88" height="34" /></a>
+      <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">&#9776;</button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="/">Home</a></li>
+        <li class="nav-item">
+          <button class="nav-item-toggle" type="button" aria-expanded="false" aria-controls="menu-product">Product <span class="caret" aria-hidden="true"></span></button>
+          <div class="dropdown" id="menu-product">
+            <a href="/product.html#echo">Echo Engine<small>Universal POS data interchange</small></a>
+            <a href="/product.html#invoice">AI Invoice-to-Stock<small>Automated supplier processing</small></a>
+            <a href="/product.html#detection">Loss Prevention<small>Real-time anomaly detection</small></a>
+            <a href="/product.html#stocktake">Stocktake &amp; Cash-up<small>Scan, weigh, reconcile</small></a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <button class="nav-item-toggle" type="button" aria-expanded="false" aria-controls="menu-solutions">Solutions <span class="caret" aria-hidden="true"></span></button>
+          <div class="dropdown" id="menu-solutions">
+            <a href="/how-it-works.html#full">Full POS Mode<small>Replace your point of sale</small></a>
+            <a href="/how-it-works.html#sidecar">Stock Sidecar Mode<small>Add on to your existing POS</small></a>
+            <a href="/how-it-works.html" aria-current="page">How It Works<small>The end-to-end flow</small></a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <button class="nav-item-toggle" type="button" aria-expanded="false" aria-controls="menu-company">Company <span class="caret" aria-hidden="true"></span></button>
+          <div class="dropdown" id="menu-company">
+            <a href="/about.html">About<small>Who we are</small></a>
+            <a href="/pricing.html">Pricing<small>Plans &amp; licensing</small></a>
+            <a href="/contact.html">Contact<small>Talk to us</small></a>
+          </div>
+        </li>
+        <li><a class="nav-cta" href="/contact.html">Book a demo</a></li>
+      </ul>
     </div>
-  </section>
+  </nav>
 
-  <section class="section">
-    <div class="container">
-      <div class="grid grid-2">
-        <div class="card card-lg" id="full">
-          <div class="eyebrow">Mode 1</div>
-          <h3>Full POS Mode</h3>
-          <p>SAMePOS becomes your point of sale outright, replacing the incumbent system &mdash; a fast bartender sales grid, tabs that follow guests between floors, split payments, manager-PIN-gated voids and comps, live mid-event pricing, and a roaming event dashboard.</p>
-        </div>
-        <div class="card card-lg" id="sidecar">
-          <div class="eyebrow">Mode 2</div>
-          <h3>Standalone Stock Sidecar</h3>
-          <p>Keep your existing POS for sales. SAMePOS reads its nightly export and layers on stock control, variance analysis, cash-up automation and loss prevention &mdash; writing results back only through that system's own safe file format. A deliberate low-risk wedge.</p>
+  <main id="main">
+    <section class="page-head">
+      <div class="container">
+        <h1>How SAMePOS works</h1>
+        <p>Adopt the AI layer with zero disruption, then graduate to a full point of sale when you're ready. Two modes, one platform.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="grid grid-2">
+          <div class="card card-lg" id="full">
+            <div class="eyebrow">Mode 1</div>
+            <h2>Full POS Mode</h2>
+            <p>SAMePOS becomes your point of sale outright, replacing the incumbent system &mdash; a fast bartender sales grid, tabs that follow guests between floors, split payments, manager-PIN-gated voids and comps, live mid-event pricing, and a roaming event dashboard.</p>
+          </div>
+          <div class="card card-lg" id="sidecar">
+            <div class="eyebrow">Mode 2</div>
+            <h2>Standalone Stock Sidecar</h2>
+            <p>Keep your existing POS for sales. SAMePOS reads its nightly export and layers on stock control, variance analysis, cash-up automation and loss prevention &mdash; writing results back only through that system's own safe file format. A deliberate low-risk wedge.</p>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="section section-alt">
-    <div class="container">
-      <h2 class="section-title">The end-to-end flow</h2>
-      <p class="section-lead">From raw venue data to real-time insight, in five steps.</p>
-      <div class="steps">
-        <div class="step"><div class="num">1</div><div><h3>Connect</h3><p>The Echo Engine plugs into your existing POS export &mdash; no rip-and-replace. It learns your file's shape once and handles every file after that automatically.</p></div></div>
-        <div class="step"><div class="num">2</div><div><h3>Capture</h3><p>Sales, payments, voids, comps and stock movements become timestamped, tamper-evident events. Supplier invoices are read and posted by the AI pipeline.</p></div></div>
-        <div class="step"><div class="num">3</div><div><h3>Detect</h3><p>Three layers of loss prevention &mdash; rules, statistical baselines and learned models &mdash; surface issues as Watch, Review or Act alerts, tuned to your venue.</p></div></div>
-        <div class="step"><div class="num">4</div><div><h3>Reconcile</h3><p>Barcode-scan-and-weigh stocktakes and automated per-staff cash-ups reconcile theory against reality &mdash; every night, to the cent.</p></div></div>
-        <div class="step"><div class="num">5</div><div><h3>Act</h3><p>Owners get per-staff, per-night visibility on a live dashboard, so margin leaks are caught while they can still be acted on.</p></div></div>
+    <section class="section section-alt">
+      <div class="container">
+        <h2 class="section-title">The end-to-end flow</h2>
+        <p class="section-lead">From raw venue data to real-time insight, in five steps.</p>
+        <div class="steps">
+          <div class="step"><div class="num" aria-hidden="true">1</div><div><h3>Connect</h3><p>The Echo Engine plugs into your existing POS export &mdash; no rip-and-replace. It learns your file's shape once and handles every file after that automatically.</p></div></div>
+          <div class="step"><div class="num" aria-hidden="true">2</div><div><h3>Capture</h3><p>Sales, payments, voids, comps and stock movements become timestamped, tamper-evident events. Supplier invoices are read and posted by the AI pipeline.</p></div></div>
+          <div class="step"><div class="num" aria-hidden="true">3</div><div><h3>Detect</h3><p>Three layers of loss prevention &mdash; rules, statistical baselines and learned models &mdash; surface issues as Watch, Review or Act alerts, tuned to your venue.</p></div></div>
+          <div class="step"><div class="num" aria-hidden="true">4</div><div><h3>Reconcile</h3><p>Barcode-scan-and-weigh stocktakes and automated per-staff cash-ups reconcile theory against reality &mdash; every night, to the cent.</p></div></div>
+          <div class="step"><div class="num" aria-hidden="true">5</div><div><h3>Act</h3><p>Owners get per-staff, per-night visibility on a live dashboard, so margin leaks are caught while they can still be acted on.</p></div></div>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="section cta-band">
-    <div class="container cta-inner">
-      <h2>Not sure which mode fits your venue?</h2>
-      <p>We'll help you choose &mdash; and show you the difference on your own numbers.</p>
-      <a href="/contact.html" class="btn btn-primary">Talk to us</a>
-    </div>
-  </section>
+    <section class="section cta-band">
+      <div class="container cta-inner">
+        <h2>Not sure which mode fits your venue?</h2>
+        <p>We'll help you choose &mdash; and show you the difference on your own numbers.</p>
+        <a href="/contact.html" class="btn btn-primary">Talk to us</a>
+      </div>
+    </section>
+  </main>
 
-  <div id="footer-placeholder"></div>
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img src="/logo.png" alt="" width="78" height="30" />
+          <p>SAMePOS by Sam Squared Softwares &mdash; an AI-integrated point-of-sale and stock-control platform for hospitality and retail.</p>
+        </div>
+        <div>
+          <h2>Product</h2>
+          <ul>
+            <li><a href="/product.html">Features</a></li>
+            <li><a href="/how-it-works.html" aria-current="page">How It Works</a></li>
+            <li><a href="/pricing.html">Pricing</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Company</h2>
+          <ul>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/contact.html">Contact</a></li>
+            <li><a href="/contact.html">Book a demo</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">&copy; <span id="year">2026</span> Sam Squared Softwares (Pty) Ltd. All rights reserved. &nbsp;&#8226;&nbsp; Smarter Softwares. Squared.</div>
+    </div>
+  </footer>
   <script src="/script.js"></script>
 </body>
 </html>

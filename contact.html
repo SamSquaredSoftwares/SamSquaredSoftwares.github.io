@@ -3,61 +3,126 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contact &amp; Book a Demo &mdash; SAM²</title>
+  <title>Contact &amp; Book a Demo &mdash; SAM&#178;</title>
   <meta name="description" content="Talk to Sam Squared Softwares about SAMePOS. Book a demo or request a tailored quote for your venue." />
   <link rel="icon" type="image/png" href="/logo.png" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <div id="nav-placeholder"></div>
+  <a class="skip-link" href="#main">Skip to content</a>
 
-  <section class="page-head">
-    <div class="container">
-      <h1>Book a demo</h1>
-      <p>Tell us about your venue and we'll show you SAMePOS against your own numbers &mdash; then tailor a quote to fit.</p>
+  <nav class="nav" aria-label="Main">
+    <div class="nav-inner">
+      <a class="nav-brand" href="/"><img src="/logo.png" alt="SAM&#178; home" width="88" height="34" /></a>
+      <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">&#9776;</button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="/">Home</a></li>
+        <li class="nav-item">
+          <button class="nav-item-toggle" type="button" aria-expanded="false" aria-controls="menu-product">Product <span class="caret" aria-hidden="true"></span></button>
+          <div class="dropdown" id="menu-product">
+            <a href="/product.html#echo">Echo Engine<small>Universal POS data interchange</small></a>
+            <a href="/product.html#invoice">AI Invoice-to-Stock<small>Automated supplier processing</small></a>
+            <a href="/product.html#detection">Loss Prevention<small>Real-time anomaly detection</small></a>
+            <a href="/product.html#stocktake">Stocktake &amp; Cash-up<small>Scan, weigh, reconcile</small></a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <button class="nav-item-toggle" type="button" aria-expanded="false" aria-controls="menu-solutions">Solutions <span class="caret" aria-hidden="true"></span></button>
+          <div class="dropdown" id="menu-solutions">
+            <a href="/how-it-works.html#full">Full POS Mode<small>Replace your point of sale</small></a>
+            <a href="/how-it-works.html#sidecar">Stock Sidecar Mode<small>Add on to your existing POS</small></a>
+            <a href="/how-it-works.html">How It Works<small>The end-to-end flow</small></a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <button class="nav-item-toggle" type="button" aria-expanded="false" aria-controls="menu-company">Company <span class="caret" aria-hidden="true"></span></button>
+          <div class="dropdown" id="menu-company">
+            <a href="/about.html">About<small>Who we are</small></a>
+            <a href="/pricing.html">Pricing<small>Plans &amp; licensing</small></a>
+            <a href="/contact.html" aria-current="page">Contact<small>Talk to us</small></a>
+          </div>
+        </li>
+        <li><a class="nav-cta" href="/contact.html" aria-current="page">Book a demo</a></li>
+      </ul>
     </div>
-  </section>
+  </nav>
 
-  <section class="section">
-    <div class="container">
-      <div class="contact-grid">
-        <div class="contact-info">
-          <h3>Get in touch</h3>
-          <p>We usually respond within one business day. Whether you run a single venue or a group, we'll help you work out which mode fits.</p>
-          <div class="line"><b>Email:</b>&nbsp;<a href="mailto:info@samsquaredsoftwares.com">info@samsquaredsoftwares.com</a></div>
-          <div class="line"><b>Sales:</b>&nbsp;<a href="mailto:sales@samsquaredsoftwares.com">sales@samsquaredsoftwares.com</a></div>
-          <div class="line"><b>Based in:</b>&nbsp;South Africa</div>
-          <p style="margin-top:24px;color:var(--muted);font-size:14px;">Prefer email? Just write to us directly and mention your venue type and how many stations you run.</p>
-        </div>
-
-        <form class="contact" action="https://formsubmit.co/info@samsquaredsoftwares.com" method="POST">
-          <label for="name">Name</label>
-          <input id="name" name="name" type="text" placeholder="Your name" required />
-
-          <label for="email">Work email</label>
-          <input id="email" name="email" type="email" placeholder="you@venue.com" required />
-
-          <label for="venue">Venue / company</label>
-          <input id="venue" name="venue" type="text" placeholder="Your venue name" />
-
-          <label for="interest">I'm interested in</label>
-          <select id="interest" name="interest">
-            <option>Stock Sidecar</option>
-            <option>Full POS</option>
-            <option>Enterprise / multi-venue</option>
-            <option>Just exploring</option>
-          </select>
-
-          <label for="message">Message</label>
-          <textarea id="message" name="message" rows="4" placeholder="Tell us a little about your venue..."></textarea>
-
-          <button type="submit" class="btn btn-primary" style="width:100%;border:none;">Request a demo</button>
-        </form>
+  <main id="main">
+    <section class="page-head">
+      <div class="container">
+        <h1>Book a demo</h1>
+        <p>Tell us about your venue and we'll show you SAMePOS against your own numbers &mdash; then tailor a quote to fit.</p>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <div id="footer-placeholder"></div>
+    <section class="section">
+      <div class="container">
+        <div class="contact-grid">
+          <div class="contact-info">
+            <h2>Get in touch</h2>
+            <p>We usually respond within one business day. Whether you run a single venue or a group, we'll help you work out which mode fits.</p>
+            <div class="line"><b>Email:</b>&nbsp;<a href="mailto:info@samsquaredsoftwares.com">info@samsquaredsoftwares.com</a></div>
+            <div class="line"><b>Sales:</b>&nbsp;<a href="mailto:sales@samsquaredsoftwares.com">sales@samsquaredsoftwares.com</a></div>
+            <div class="line"><b>Based in:</b>&nbsp;South Africa</div>
+            <p style="margin-top:24px;color:var(--muted);font-size:14px;">Prefer email? Just write to us directly and mention your venue type and how many stations you run.</p>
+          </div>
+
+          <form class="contact" action="https://formsubmit.co/info@samsquaredsoftwares.com" method="POST" aria-labelledby="form-heading">
+            <h2 id="form-heading" class="sr-only">Demo request form</h2>
+            <label for="name">Name</label>
+            <input id="name" name="name" type="text" autocomplete="name" placeholder="Your name" required />
+
+            <label for="email">Work email</label>
+            <input id="email" name="email" type="email" autocomplete="email" placeholder="you@venue.com" required />
+
+            <label for="venue">Venue / company</label>
+            <input id="venue" name="venue" type="text" autocomplete="organization" placeholder="Your venue name" />
+
+            <label for="interest">I'm interested in</label>
+            <select id="interest" name="interest">
+              <option>Stock Sidecar</option>
+              <option>Full POS</option>
+              <option>Enterprise / multi-venue</option>
+              <option>Just exploring</option>
+            </select>
+
+            <label for="message">Message</label>
+            <textarea id="message" name="message" rows="4" placeholder="Tell us a little about your venue..."></textarea>
+
+            <button type="submit" class="btn btn-primary btn-block">Request a demo</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img src="/logo.png" alt="" width="78" height="30" />
+          <p>SAMePOS by Sam Squared Softwares &mdash; an AI-integrated point-of-sale and stock-control platform for hospitality and retail.</p>
+        </div>
+        <div>
+          <h2>Product</h2>
+          <ul>
+            <li><a href="/product.html">Features</a></li>
+            <li><a href="/how-it-works.html">How It Works</a></li>
+            <li><a href="/pricing.html">Pricing</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Company</h2>
+          <ul>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/contact.html" aria-current="page">Contact</a></li>
+            <li><a href="/contact.html" aria-current="page">Book a demo</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">&copy; <span id="year">2026</span> Sam Squared Softwares (Pty) Ltd. All rights reserved. &nbsp;&#8226;&nbsp; Smarter Softwares. Squared.</div>
+    </div>
+  </footer>
   <script src="/script.js"></script>
 </body>
 </html>
