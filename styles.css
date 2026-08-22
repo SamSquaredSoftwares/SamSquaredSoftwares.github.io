@@ -158,6 +158,7 @@ a:hover { color: var(--white); }
 .plan ul { list-style: none; padding: 0; margin: 0 0 26px; flex-grow: 1; }
 .plan li { padding: 8px 0 8px 26px; position: relative; color: var(--text); border-bottom: 1px solid var(--border); }
 .plan li:before { content: "\2713"; position: absolute; left: 0; color: var(--blue-bright); font-weight: 700; }
+.price-note { margin-top: 44px; }
 
 /* ---------- FAQ ---------- */
 .faq { max-width: 780px; margin: 0 auto; }
@@ -174,6 +175,7 @@ a:hover { color: var(--white); }
 .contact-info p { color: var(--muted); }
 .contact-info .line { display: flex; gap: 10px; margin-bottom: 14px; }
 .contact-info .line b { color: var(--white); }
+.contact-info .note { margin-top: 24px; color: var(--muted); font-size: 14px; }
 form.contact { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 30px; }
 form.contact label { display: block; font-size: 14px; margin: 0 0 6px; color: var(--muted); }
 form.contact input, form.contact textarea, form.contact select {

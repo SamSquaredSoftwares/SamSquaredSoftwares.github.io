@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Conformance: nesting, required attributes, obsolete elements, a11y rules.
+      # Pinned exactly so a new minor release cannot turn CI red on its own.
+      - name: Validate HTML
+        run: npx --yes html-validate@9.7.1 --formatter=stylish *.html
+
+      # Structure, internal links and metadata. Standard library only.
+      - name: Check structure, links and metadata
+        run: python3 scripts/check_site.py
+
+      - name: Check JavaScript syntax
+        run: node --check script.js
