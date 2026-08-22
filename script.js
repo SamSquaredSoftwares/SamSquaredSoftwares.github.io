@@ -1,99 +1,72 @@
-/* SAM² site shared navigation + footer + interactions */
+/* SAM² site interactions.
+   Navigation and footer markup now lives statically in each page; this file
+   only wires up behaviour and keeps ARIA state in sync. */
 (function () {
-  var NAV = ''
-    + '<nav class="nav">'
-    +   '<div class="nav-inner">'
-    +     '<a class="nav-brand" href="/index.html"><img src="/logo.png" alt="SAM²" /></a>'
-    +     '<button class="nav-toggle" aria-label="Toggle menu">&#9776;</button>'
-    +     '<ul class="nav-links">'
-    +       '<li><a href="/index.html">Home</a></li>'
-    +       '<li class="nav-item">'
-    +         '<button class="nav-item-toggle">Product <span class="caret"></span></button>'
-    +         '<div class="dropdown">'
-    +           '<a href="/product.html#echo">Echo Engine<small>Universal POS data interchange</small></a>'
-    +           '<a href="/product.html#invoice">AI Invoice-to-Stock<small>Automated supplier processing</small></a>'
-    +           '<a href="/product.html#detection">Loss Prevention<small>Real-time anomaly detection</small></a>'
-    +           '<a href="/product.html#stocktake">Stocktake &amp; Cash-up<small>Scan, weigh, reconcile</small></a>'
-    +         '</div>'
-    +       '</li>'
-    +       '<li class="nav-item">'
-    +         '<button class="nav-item-toggle">Solutions <span class="caret"></span></button>'
-    +         '<div class="dropdown">'
-    +           '<a href="/how-it-works.html#full">Full POS Mode<small>Replace your point of sale</small></a>'
-    +           '<a href="/how-it-works.html#sidecar">Stock Sidecar Mode<small>Add on to your existing POS</small></a>'
-    +           '<a href="/how-it-works.html">How It Works<small>The end-to-end flow</small></a>'
-    +         '</div>'
-    +       '</li>'
-    +       '<li class="nav-item">'
-    +         '<button class="nav-item-toggle">Company <span class="caret"></span></button>'
-    +         '<div class="dropdown">'
-    +           '<a href="/about.html">About<small>Who we are</small></a>'
-    +           '<a href="/pricing.html">Pricing<small>Plans &amp; licensing</small></a>'
-    +           '<a href="/contact.html">Contact<small>Talk to us</small></a>'
-    +         '</div>'
-    +       '</li>'
-    +       '<li><a class="nav-cta" href="/contact.html">Book a demo</a></li>'
-    +     '</ul>'
-    +   '</div>'
-    + '</nav>';
+  function setExpanded(btn, open) {
+    if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
 
-  var YEAR = new Date().getFullYear();
-  var FOOTER = ''
-    + '<footer class="footer"><div class="container">'
-    +   '<div class="footer-grid">'
-    +     '<div class="footer-brand">'
-    +       '<img src="/logo.png" alt="SAM²" />'
-    +       '<p>SAMePOS by Sam Squared Softwares — an AI-integrated point-of-sale and stock-control platform for hospitality and retail.</p>'
-    +     '</div>'
-    +     '<div><h4>Product</h4><ul>'
-    +       '<li><a href="/product.html">Features</a></li>'
-    +       '<li><a href="/how-it-works.html">How It Works</a></li>'
-    +       '<li><a href="/pricing.html">Pricing</a></li>'
-    +     '</ul></div>'
-    +     '<div><h4>Company</h4><ul>'
-    +       '<li><a href="/about.html">About</a></li>'
-    +       '<li><a href="/contact.html">Contact</a></li>'
-    +       '<li><a href="/contact.html">Book a demo</a></li>'
-    +     '</ul></div>'
-    +   '</div>'
-    +   '<div class="footer-bottom">&copy; ' + YEAR + ' Sam Squared Softwares (Pty) Ltd. All rights reserved. &nbsp;•&nbsp; Smarter Softwares. Squared.</div>'
-    + '</div></footer>';
+  function closeAllDropdowns() {
+    document.querySelectorAll('.nav-item.open').forEach(function (item) {
+      item.classList.remove('open');
+      setExpanded(item.querySelector('.nav-item-toggle'), false);
+    });
+  }
 
-  function mount() {
-    var navEl = document.getElementById('nav-placeholder');
-    var footEl = document.getElementById('footer-placeholder');
-    if (navEl) navEl.innerHTML = NAV;
-    if (footEl) footEl.innerHTML = FOOTER;
-
-    // Mobile menu toggle
+  function init() {
+    // Mobile menu
     var toggle = document.querySelector('.nav-toggle');
     var links = document.querySelector('.nav-links');
     if (toggle && links) {
-      toggle.addEventListener('click', function () { links.classList.toggle('open'); });
+      toggle.addEventListener('click', function () {
+        setExpanded(toggle, links.classList.toggle('open'));
+      });
     }
 
-    // Dropdown toggles (click on mobile, hover handled by CSS on desktop)
+    // Dropdowns: click to toggle (CSS handles hover and focus-within)
     document.querySelectorAll('.nav-item-toggle').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         var item = btn.closest('.nav-item');
         var wasOpen = item.classList.contains('open');
-        document.querySelectorAll('.nav-item').forEach(function (i) { i.classList.remove('open'); });
-        if (!wasOpen) item.classList.add('open');
+        closeAllDropdowns();
+        if (!wasOpen) {
+          item.classList.add('open');
+          setExpanded(btn, true);
+        }
       });
     });
 
     // Close dropdowns when clicking outside
     document.addEventListener('click', function (e) {
-      if (!e.target.closest('.nav-item')) {
-        document.querySelectorAll('.nav-item').forEach(function (i) { i.classList.remove('open'); });
+      if (!e.target.closest('.nav-item')) closeAllDropdowns();
+    });
+
+    // Escape closes the open dropdown and returns focus to its trigger
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' && e.key !== 'Esc') return;
+      var openItem = document.querySelector('.nav-item.open');
+      if (openItem) {
+        var btn = openItem.querySelector('.nav-item-toggle');
+        closeAllDropdowns();
+        if (btn) btn.focus();
+        return;
+      }
+      if (links && links.classList.contains('open')) {
+        links.classList.remove('open');
+        setExpanded(toggle, false);
+        if (toggle) toggle.focus();
       }
     });
+
+    // Keep the footer copyright year current
+    var year = document.getElementById('year');
+    if (year) year.textContent = new Date().getFullYear();
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', mount);
+    document.addEventListener('DOMContentLoaded', init);
   } else {
-    mount();
+    init();
   }
 })();
