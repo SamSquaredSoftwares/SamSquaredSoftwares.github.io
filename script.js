@@ -59,6 +59,20 @@
       }
     });
 
+    // Contact form: FormSubmit still handles the email. Also send a copy to our
+    // own endpoint so every lead is stored. A beacon survives the page
+    // navigating away and never blocks or delays the real submission.
+    var leadForm = document.querySelector('form[data-lead-endpoint]');
+    if (leadForm && navigator.sendBeacon && window.FormData) {
+      leadForm.addEventListener('submit', function () {
+        try {
+          navigator.sendBeacon(leadForm.getAttribute('data-lead-endpoint'), new FormData(leadForm));
+        } catch (err) {
+          // Storage is a bonus; the email path must always go through.
+        }
+      });
+    }
+
     // Keep the footer copyright year current
     var year = document.getElementById('year');
     if (year) year.textContent = new Date().getFullYear();

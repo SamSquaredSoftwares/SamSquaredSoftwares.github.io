@@ -38,3 +38,33 @@ jobs:
 
       - name: Check JavaScript syntax
         run: node --check script.js
+
+  worker:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: workers/leads
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: workers/leads/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      # Runs the lead Worker in workerd with a local D1 and rate limiter.
+      - name: Test the lead Worker
+        run: npm test
+
+      # Validates wrangler.jsonc and bundles the Worker without deploying.
+      - name: Check the Worker builds
+        run: npx wrangler deploy --dry-run --outdir "$RUNNER_TEMP/worker"

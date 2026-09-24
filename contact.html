@@ -105,16 +105,16 @@
             <p class="note">Prefer email? Just write to us directly and mention your venue type and how many stations you run.</p>
           </div>
 
-          <form class="contact" action="https://formsubmit.co/info@samsquaredsoftwares.com" method="POST" aria-labelledby="form-heading">
+          <form class="contact" action="https://formsubmit.co/info@samsquaredsoftwares.com" method="POST" aria-labelledby="form-heading" data-lead-endpoint="/api/lead">
             <h2 id="form-heading" class="sr-only">Demo request form</h2>
             <label for="name">Name</label>
-            <input id="name" name="name" type="text" autocomplete="name" placeholder="Your name" required />
+            <input id="name" name="name" type="text" autocomplete="name" placeholder="Your name" maxlength="200" required />
 
             <label for="email">Work email</label>
-            <input id="email" name="email" type="email" autocomplete="email" placeholder="you@venue.com" required />
+            <input id="email" name="email" type="email" autocomplete="email" placeholder="you@venue.com" maxlength="254" required />
 
             <label for="venue">Venue / company</label>
-            <input id="venue" name="venue" type="text" autocomplete="organization" placeholder="Your venue name" />
+            <input id="venue" name="venue" type="text" autocomplete="organization" placeholder="Your venue name" maxlength="200" />
 
             <label for="interest">I'm interested in</label>
             <select id="interest" name="interest">
@@ -126,6 +126,11 @@
 
             <label for="message">Message</label>
             <textarea id="message" name="message" rows="4" placeholder="Tell us a little about your venue..."></textarea>
+
+            <div class="hp" aria-hidden="true">
+              <label for="contact-hp">Leave this field empty</label>
+              <input id="contact-hp" name="_honey" type="text" tabindex="-1" autocomplete="off" />
+            </div>
 
             <button type="submit" class="btn btn-primary btn-block">Request a demo</button>
           </form>
