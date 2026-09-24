@@ -4,16 +4,19 @@
    it in D1 so every lead is kept somewhere we own, then optionally pings Slack. */
 
 const ENDPOINT = '/api/lead';
-const MAX_BODY_BYTES = 16 * 1024;
+// Room for a long message in any script (3 bytes per character in UTF-8).
+const MAX_BODY_BYTES = 64 * 1024;
 const DUPLICATE_WINDOW = '-10 minutes';
+const INSERT_ATTEMPTS = 3;
 
-// Upper bounds match the maxlength attributes on contact.html.
+// Upper bounds match the maxlength attributes on contact.html. The message has
+// no maxlength there, so the email path keeps any length; the body cap bounds it.
 const FIELDS = {
   name: { max: 200, required: true },
   email: { max: 254, required: true },
   venue: { max: 200 },
   interest: { max: 100 },
-  message: { max: 5000 },
+  message: {},
 };
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -46,7 +49,7 @@ export default {
     for (const [field, rule] of Object.entries(FIELDS)) {
       const value = text(form, field);
       if (rule.required && !value) return reply(400, { error: 'missing_field', field });
-      if (value.length > rule.max) return reply(400, { error: 'field_too_long', field });
+      if (rule.max && value.length > rule.max) return reply(400, { error: 'field_too_long', field });
       lead[field] = value || null;
     }
     if (!EMAIL.test(lead.email)) return reply(400, { error: 'invalid_email', field: 'email' });
@@ -54,19 +57,17 @@ export default {
     lead.source = sourcePage(request, origin);
     lead.country = country(request);
 
-    // Double clicks and resubmits within the window are stored once.
-    const result = await env.DB.prepare(
-      `INSERT INTO leads (name, email, venue, interest, message, source, country)
-       SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7
-       WHERE NOT EXISTS (
-         SELECT 1 FROM leads
-         WHERE email = ?2 AND message IS ?5 AND created_at > datetime('now', ?8)
-       )`
-    ).bind(lead.name, lead.email, lead.venue, lead.interest, lead.message,
-           lead.source, lead.country, DUPLICATE_WINDOW).run();
+    let result;
+    try {
+      result = await insertLead(env.DB, lead);
+    } catch (err) {
+      log('lead.store_failed', { error: err && err.name, country: lead.country });
+      return reply(503, { error: 'store_failed' });
+    }
 
     const stored = result.meta.changes === 1;
-    log(stored ? 'lead.stored' : 'lead.duplicate', { id: result.meta.last_row_id, country: lead.country });
+    if (stored) log('lead.stored', { id: result.meta.last_row_id, country: lead.country });
+    else log('lead.duplicate', { country: lead.country });
 
     if (stored && env.SLACK_WEBHOOK_URL) {
       ctx.waitUntil(notifySlack(env.SLACK_WEBHOOK_URL, lead));
@@ -74,6 +75,44 @@ export default {
     return reply(204);
   },
 };
+
+// Double clicks and resubmits within the window are stored once. That guard
+// also makes a retry safe if a failed attempt had in fact been written.
+async function insertLead(db, lead) {
+  const statement = db.prepare(
+    `INSERT INTO leads (name, email, venue, interest, message, source, country)
+     SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7
+     WHERE NOT EXISTS (
+       SELECT 1 FROM leads
+       WHERE email = ?2 AND message IS ?5 AND created_at > datetime('now', ?8)
+     )`
+  ).bind(lead.name, lead.email, lead.venue, lead.interest, lead.message,
+         lead.source, lead.country, DUPLICATE_WINDOW);
+
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await statement.run();
+    } catch (err) {
+      if (attempt >= INSERT_ATTEMPTS || !retryable(err)) throw err;
+      log('lead.store_retry', { attempt, error: err && err.name });
+      // Exponential backoff with jitter, as D1's retry guidance recommends.
+      await sleep(50 * 2 ** attempt + Math.random() * 50);
+    }
+  }
+}
+
+// D1 retries read-only queries itself, but not writes. These are the
+// transient errors its docs list as safe to retry.
+function retryable(err) {
+  const message = String(err);
+  return message.includes('Network connection lost') ||
+    message.includes('storage caused object to be reset') ||
+    message.includes('reset because its code was updated');
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function allowedOrigins(env) {
   return (env.ALLOWED_ORIGINS || '').split(',').map((o) => o.trim()).filter(Boolean);
@@ -116,9 +155,10 @@ async function readForm(request) {
   }
 }
 
+// Form encoding sends line breaks as CRLF. Store LF, as the visitor typed it.
 function text(form, name) {
   const value = form.get(name);
-  return typeof value === 'string' ? value.trim() : '';
+  return typeof value === 'string' ? value.replace(/\r\n?/g, '\n').trim() : '';
 }
 
 // The page the form was on, from the Referer, only when it is our own site.
@@ -150,7 +190,8 @@ async function notifySlack(webhook, lead) {
     });
     if (!res.ok) log('slack.failed', { status: res.status });
   } catch (err) {
-    log('slack.failed', { error: String(err) });
+    // Only the error name: the message can contain the webhook URL, a secret.
+    log('slack.failed', { error: err && err.name });
   }
 }
 

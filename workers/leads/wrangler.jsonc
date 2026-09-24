@@ -32,8 +32,13 @@
 
   // Optional secret: SLACK_WEBHOOK_URL (wrangler secret put SLACK_WEBHOOK_URL)
 
+  // Keep only the Worker's own JSON log lines (event, row id, country).
+  // Invocation logs and traces would record each visitor's user agent, city
+  // and network next to their lead, and traces would record the Slack webhook
+  // URL, which is a secret.
   "observability": {
     "enabled": true,
-    "traces": { "enabled": true }
+    "logs": { "invocation_logs": false },
+    "traces": { "enabled": false }
   }
 }

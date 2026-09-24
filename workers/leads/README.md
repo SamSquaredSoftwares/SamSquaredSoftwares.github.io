@@ -11,8 +11,8 @@ Stores every demo request from `contact.html` in a Cloudflare D1 database, and c
    - accepts only requests from our own site (`Origin` check)
    - rate-limits to 5 requests a minute per IP
    - drops bots that fill in the hidden `_honey` field
-   - validates the fields and caps the body at 16 KB
-   - stores the lead once, skipping a repeat of the same email and message within 10 minutes
+   - validates the fields and caps the body at 64 KB
+   - stores the lead once, skipping a repeat of the same email and message within 10 minutes, and retries D1 writes that fail with a transient error
    - posts to Slack, if `SLACK_WEBHOOK_URL` is set
 
 If the Worker is down or not deployed yet, the beacon fails quietly. The email still goes out.
@@ -49,6 +49,8 @@ Go to Actions > **Deploy lead Worker** > Run workflow. After that, every push to
 3. applies the migrations
 4. deploys
 
+Always deploy through this workflow, never a bare `wrangler deploy`. On a fresh account, a bare deploy creates the database in the wrong place and without the `leads` table.
+
 If the zone is in a different account from the token, the deploy fails with "Could not find zone". Make the token in the other account.
 
 ### 4. Optional: Slack alerts
@@ -83,7 +85,7 @@ The Worker stores only:
 - the page the form was on
 - a two-letter country code
 
-It stores no IP addresses and no user agents. The rate limiter sees the IP only in memory. To remove someone's data:
+It stores no IP addresses and no user agents. The rate limiter sees the IP only in memory. Workers invocation logs and traces are turned off in `wrangler.jsonc`, because they would record each visitor's user agent, city and network next to the lead. The Worker's own log lines hold only an event name, the row ID and the country code. To remove someone's data:
 
 ```sql
 DELETE FROM leads WHERE email = 'person@example.com';

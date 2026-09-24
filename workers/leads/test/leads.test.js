@@ -1,5 +1,7 @@
+import { createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
 import { env, exports } from 'cloudflare:workers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import worker from '../src/index.js';
 
 const SITE = 'https://samsquaredsoftwares.com';
 const ENDPOINT = SITE + '/api/lead';
@@ -128,6 +130,35 @@ describe('storing leads', () => {
     expect(await rowsFor(email)).toHaveLength(2);
   });
 
+  it('stores a long message in full: only the body cap bounds it', async () => {
+    const { ip, email } = uniq();
+    const message = 'x'.repeat(20000);
+    const res = await post({ ip, body: formData(fields({ email, message })) });
+
+    expect(res.status).toBe(204);
+    const [row] = await rowsFor(email);
+    expect(row.message).toBe(message);
+  });
+
+  it('stores CRLF and CR line breaks as LF', async () => {
+    const { ip, email } = uniq();
+    await post({ ip, body: formData(fields({ email, message: 'Line one\r\nLine two\rLine three' })) });
+
+    const [row] = await rowsFor(email);
+    expect(row.message).toBe('Line one\nLine two\nLine three');
+  });
+
+  it('accepts a full form in a 3-byte script', async () => {
+    const { ip, email } = uniq();
+    const res = await post({
+      ip,
+      body: formData(fields({ email, name: '名'.repeat(200), venue: '店'.repeat(200), message: '字'.repeat(5000) })),
+    });
+
+    expect(res.status).toBe(204);
+    expect(await rowsFor(email)).toHaveLength(1);
+  });
+
   it('treats two empty messages as the same submission', async () => {
     const { ip, email } = uniq();
     await post({ ip, body: formData(fields({ email, message: '' })) });
@@ -160,6 +191,16 @@ describe('Slack alert', () => {
     const { text } = JSON.parse(slack.mock.calls[0][1].body);
     expect(text).toContain('&lt;!channel&gt; &amp; &lt;https://x.test|click&gt;');
     expect(text).not.toContain('<!channel>');
+  });
+
+  it('never logs the webhook URL when Slack fails', async () => {
+    slack.mockRejectedValue(new TypeError('Invalid URL: hooks.slack.test/services/T000/B000/XXX'));
+    const logs = vi.spyOn(console, 'log');
+    const { ip, email } = uniq();
+    await post({ ip, body: formData(fields({ email })) });
+
+    await vi.waitFor(() => expect(logs.mock.calls.flat().join('\n')).toContain('slack.failed'));
+    expect(logs.mock.calls.flat().join('\n')).not.toContain('hooks.slack');
   });
 
   it('still stores the lead when Slack is down', async () => {
@@ -218,22 +259,22 @@ describe('spam and abuse', () => {
     expect(other.status).toBe(204);
   });
 
-  it('refuses a body over 16 KB by its Content-Length', async () => {
+  it('refuses a body over 64 KB by its Content-Length', async () => {
     const { ip, email } = uniq();
-    const res = await post({ ip, body: formData(fields({ email, message: 'x'.repeat(20000) })) });
+    const res = await post({ ip, body: formData(fields({ email, message: 'x'.repeat(70000) })) });
 
     expect(res.status).toBe(413);
     expect(await rowsFor(email)).toHaveLength(0);
   });
 
-  it('refuses a streamed body over 16 KB with no Content-Length', async () => {
+  it('refuses a streamed body over 64 KB with no Content-Length', async () => {
     const { ip } = uniq();
-    // Finite (about 24 KB), so a broken cap fails this test instead of hanging.
+    // Finite (about 72 KB), so a broken cap fails this test instead of hanging.
     const chunk = new TextEncoder().encode('x'.repeat(4096));
     let sent = 0;
     const body = new ReadableStream({
       pull(controller) {
-        if (sent++ < 6) controller.enqueue(chunk);
+        if (sent++ < 18) controller.enqueue(chunk);
         else controller.close();
       },
     });
@@ -255,7 +296,6 @@ describe('validation', () => {
     ['name', { name: 'x'.repeat(201) }, 'field_too_long'],
     ['venue', { venue: 'x'.repeat(201) }, 'field_too_long'],
     ['interest', { interest: 'x'.repeat(101) }, 'field_too_long'],
-    ['message', { message: 'x'.repeat(5001) }, 'field_too_long'],
   ])('rejects a bad %s (%o)', async (field, override, error) => {
     const { ip, email } = uniq();
     const res = await post({ ip, body: formData(fields({ email, ...override })) });
@@ -292,6 +332,97 @@ describe('validation', () => {
 
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: 'unreadable_body' });
+  });
+});
+
+describe('logging', () => {
+  it('logs the row id for a stored lead and none for a duplicate', async () => {
+    const logs = vi.spyOn(console, 'log');
+    const { ip, email } = uniq();
+    await post({ ip, body: formData(fields({ email })) });
+    await post({ ip, body: formData(fields({ email })) });
+
+    const events = logs.mock.calls.map(([line]) => JSON.parse(line));
+    const [stored] = await rowsFor(email);
+    expect(events).toContainEqual({ event: 'lead.stored', id: stored.id, country: null });
+    expect(events).toContainEqual({ event: 'lead.duplicate', country: null });
+  });
+});
+
+// D1 does not retry writes itself. These call the Worker directly with a
+// database that fails on purpose.
+describe('D1 write retries', () => {
+  function flakyDb(errors) {
+    const db = {
+      calls: 0,
+      prepare(sql) {
+        const real = env.DB.prepare(sql);
+        return {
+          bind(...args) {
+            const bound = real.bind(...args);
+            return {
+              async run() {
+                db.calls += 1;
+                const err = errors.shift();
+                if (err) throw err;
+                return bound.run();
+              },
+            };
+          },
+        };
+      },
+    };
+    return db;
+  }
+
+  async function direct(db, values, ip) {
+    const request = new Request(ENDPOINT, {
+      method: 'POST',
+      headers: { Origin: SITE, 'CF-Connecting-IP': ip },
+      body: formData(values),
+    });
+    const testEnv = {
+      DB: db,
+      LEAD_LIMITER: env.LEAD_LIMITER,
+      ALLOWED_ORIGINS: env.ALLOWED_ORIGINS,
+      SLACK_WEBHOOK_URL: env.SLACK_WEBHOOK_URL,
+    };
+    const ctx = createExecutionContext();
+    const res = await worker.fetch(request, testEnv, ctx);
+    await waitOnExecutionContext(ctx);
+    return res;
+  }
+
+  it('retries a transient error and stores the lead', async () => {
+    const db = flakyDb([new Error('D1_ERROR: Network connection lost.')]);
+    const { ip, email } = uniq();
+    const res = await direct(db, fields({ email }), ip);
+
+    expect(res.status).toBe(204);
+    expect(db.calls).toBe(2);
+    expect(await rowsFor(email)).toHaveLength(1);
+    expect(slack).toHaveBeenCalledTimes(1);
+  });
+
+  it('gives up after 3 attempts with a 503', async () => {
+    const lost = () => new Error('D1_ERROR: Network connection lost.');
+    const db = flakyDb([lost(), lost(), lost()]);
+    const { ip, email } = uniq();
+    const res = await direct(db, fields({ email }), ip);
+
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: 'store_failed' });
+    expect(db.calls).toBe(3);
+    expect(await rowsFor(email)).toHaveLength(0);
+  });
+
+  it('does not retry an error that is not transient', async () => {
+    const db = flakyDb([new Error('D1_ERROR: no such table: leads')]);
+    const { ip, email } = uniq();
+    const res = await direct(db, fields({ email }), ip);
+
+    expect(res.status).toBe(503);
+    expect(db.calls).toBe(1);
   });
 });
 
