@@ -1,0 +1,14 @@
+# GitHub Pages builds this site with Jekyll 3.10 (github-pages gem).
+# Setting `exclude` REPLACES Jekyll's default list instead of adding to it,
+# so the defaults (and the CNAME exclude github-pages adds) are repeated here.
+# workers/ holds Cloudflare Worker source, which is deployed separately.
+exclude:
+  - workers/
+  - CNAME
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
