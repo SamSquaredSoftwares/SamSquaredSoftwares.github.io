@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Users &amp; Permissions — SAM²</title>
+  <meta name="description" content="Add team members, see who is active and set each person's permission level." />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#05070d" />
+
+  <link rel="icon" type="image/jpeg" href="/logo.jpg" />
+  <link rel="apple-touch-icon" href="/logo.jpg" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="nav" aria-label="Main">
+    <div class="nav-inner">
+      <a class="nav-brand" href="/"><img src="/logo.jpg" alt="SAM&#178; home" width="88" height="34" /></a>
+      <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">&#9776;</button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="/">Home</a></li>
+        <li class="nav-item">
+          <button class="nav-item-toggle" type="button" aria-expanded="false" aria-controls="menu-product">Product <span class="caret" aria-hidden="true"></span></button>
+          <div class="dropdown" id="menu-product">
+            <a href="/product.html#echo">Echo Engine<small>Universal POS data interchange</small></a>
+            <a href="/product.html#invoice">AI Invoice-to-Stock<small>Automated supplier processing</small></a>
+            <a href="/product.html#detection">Loss Prevention<small>Real-time anomaly detection</small></a>
+            <a href="/product.html#stocktake">Stocktake &amp; Cash-up<small>Scan, weigh, reconcile</small></a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <button class="nav-item-toggle" type="button" aria-expanded="false" aria-controls="menu-solutions">Solutions <span class="caret" aria-hidden="true"></span></button>
+          <div class="dropdown" id="menu-solutions">
+            <a href="/how-it-works.html#full">Full POS Mode<small>Replace your point of sale</small></a>
+            <a href="/how-it-works.html#sidecar">Stock Sidecar Mode<small>Add on to your existing POS</small></a>
+            <a href="/how-it-works.html">How It Works<small>The end-to-end flow</small></a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <button class="nav-item-toggle" type="button" aria-expanded="false" aria-controls="menu-company">Company <span class="caret" aria-hidden="true"></span></button>
+          <div class="dropdown" id="menu-company">
+            <a href="/about.html">About<small>Who we are</small></a>
+            <a href="/pricing.html">Pricing<small>Plans &amp; licensing</small></a>
+            <a href="/contact.html">Contact<small>Talk to us</small></a>
+          </div>
+        </li>
+        <li><a class="nav-cta" href="/contact.html">Book a demo</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main id="main">
+    <section class="page-head">
+      <div class="container">
+        <h1>Users &amp; permissions</h1>
+        <p>Add team members, see who is active and set what each person can do.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <p class="users-note" role="note"><b>Preview mode:</b> users are saved in this browser only. Connect a login backend before real staff use this page.</p>
+
+        <div class="users-stats" aria-live="polite">
+          <div class="card"><span class="stat-num" id="stat-active">0</span><span class="stat-label">Active</span></div>
+          <div class="card"><span class="stat-num" id="stat-invited">0</span><span class="stat-label">Invited</span></div>
+          <div class="card"><span class="stat-num" id="stat-suspended">0</span><span class="stat-label">Suspended</span></div>
+          <div class="card"><span class="stat-num" id="stat-total">0</span><span class="stat-label">Total</span></div>
+        </div>
+
+        <div class="users-layout">
+          <form class="contact users-add" id="add-user" novalidate>
+            <h2>Add a user</h2>
+            <label for="u-name">Full name</label>
+            <input id="u-name" name="name" type="text" autocomplete="name" required />
+            <label for="u-email">Email</label>
+            <input id="u-email" name="email" type="email" autocomplete="email" required />
+            <label for="u-role">Permission level</label>
+            <select id="u-role" name="role"></select>
+            <p class="users-msg" id="add-msg" role="status"></p>
+            <button type="submit" class="btn btn-primary btn-block">Add user</button>
+          </form>
+
+          <div class="users-list">
+            <div class="users-toolbar">
+              <h2>Team</h2>
+              <label class="sr-only" for="u-search">Search users</label>
+              <input id="u-search" type="search" placeholder="Search name or email" />
+              <label class="sr-only" for="u-filter">Filter by status</label>
+              <select id="u-filter">
+                <option value="all">All statuses</option>
+                <option value="active">Active</option>
+                <option value="invited">Invited</option>
+                <option value="suspended">Suspended</option>
+              </select>
+            </div>
+            <div class="table-wrap">
+              <table class="users-table">
+                <thead>
+                  <tr><th scope="col">User</th><th scope="col">Status</th><th scope="col">Permission</th><th scope="col">Last active</th><th scope="col"><span class="sr-only">Actions</span></th></tr>
+                </thead>
+                <tbody id="user-rows"></tbody>
+              </table>
+            </div>
+            <p class="users-empty" id="users-empty" hidden>No users match.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-alt">
+      <div class="container">
+        <h2 class="section-title">What each level can do</h2>
+        <div class="table-wrap">
+          <table class="users-table perm-table" id="perm-table"></table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img src="/logo.jpg" alt="" width="78" height="30" />
+          <p>SAMePOS by Sam Squared Softwares &mdash; an AI-integrated point-of-sale and stock-control platform for hospitality and retail.</p>
+        </div>
+        <div>
+          <h2>Product</h2>
+          <ul>
+            <li><a href="/product.html">Features</a></li>
+            <li><a href="/how-it-works.html">How It Works</a></li>
+            <li><a href="/pricing.html">Pricing</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Company</h2>
+          <ul>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/contact.html">Contact</a></li>
+            <li><a href="/contact.html">Book a demo</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">&copy; <span id="year">2026</span> Sam Squared Softwares (Pty) Ltd. All rights reserved. &nbsp;&#8226;&nbsp; Smarter Softwares. Squared.</div>
+    </div>
+  </footer>
+  <script src="/script.js"></script>
+  <script src="/users.js"></script>
+</body>
+</html>
