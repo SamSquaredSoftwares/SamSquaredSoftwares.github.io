@@ -31,6 +31,7 @@
   var me = null;
   var operators = [];
   var invites = [];
+  var removed = [];
   var nodes = [];
   var tenants = {};
   var lastInviteText = '';
@@ -59,6 +60,18 @@
   function errText(err) {
     if (!err) return 'Something went wrong.';
     return err.message || String(err);
+  }
+
+  function fmtAgo(iso) {
+    if (!iso) return 'Never';
+    var mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+    if (mins < 2) return 'Just now';
+    if (mins < 60) return mins + ' min ago';
+    var hrs = Math.round(mins / 60);
+    if (hrs < 24) return hrs + ' h ago';
+    var days = Math.round(hrs / 24);
+    if (days < 30) return days + (days === 1 ? ' day ago' : ' days ago');
+    return fmtDate(iso);
   }
 
   function fmtDate(iso) {
@@ -146,6 +159,7 @@
       if (err) { say('app-msg', 'Could not load users: ' + errText(err), 'error'); return false; }
       operators = ops.data.operators || [];
       invites = ops.data.invites || [];
+      removed = ops.data.removed || [];
       nodes = nd.data || [];
       tenants = {};
       (tn.data || []).forEach(function (t) { tenants[t.id] = t.name; });
@@ -177,6 +191,7 @@
   function render() {
     renderOperators();
     renderInvites();
+    renderRemoved();
     $('stat-active').textContent = operators.filter(function (o) { return o.status === 'active'; }).length;
     $('stat-suspended').textContent = operators.filter(function (o) { return o.status === 'suspended'; }).length;
     $('stat-invited').textContent = invites.length;
@@ -229,7 +244,7 @@
       }
       tr.appendChild(venues);
 
-      tr.appendChild(el('td', null, fmtDate(o.created_at)));
+      tr.appendChild(el('td', { title: 'Joined ' + fmtDate(o.created_at) }, fmtAgo(o.last_login_at)));
 
       var actions = el('td', { class: 'u-actions' });
       if (r.venues) {
@@ -240,10 +255,15 @@
       if (!self) {
         var suspending = o.status === 'active';
         actions.appendChild(button(suspending ? 'Suspend' : 'Reactivate', function () {
-          if (suspending && !confirm('Suspend ' + (o.display_name || o.email) + '? They lose access to the console.')) return;
+          if (suspending && !confirm('Suspend ' + (o.display_name || o.email) + '? They are signed out and cannot sign in until you reactivate them.')) return;
           act('fleet_set_operator_status', { p_operator: o.id, p_status: suspending ? 'suspended' : 'active' },
             (o.display_name || o.email) + (suspending ? ' suspended.' : ' reactivated.'));
         }, suspending ? 'danger' : null));
+        actions.appendChild(button('Remove', function () {
+          var who = o.display_name || o.email;
+          if (!confirm('Remove ' + who + '? They are signed out, cannot sign in, and move to Removed users. You can restore them later.')) return;
+          act('fleet_remove_operator', { p_operator: o.id }, who + ' removed.');
+        }, 'danger'));
       }
       tr.appendChild(actions);
       tbody.appendChild(tr);
@@ -271,6 +291,28 @@
       tbody.appendChild(tr);
     });
     $('invites-empty').hidden = invites.length > 0;
+  }
+
+  function renderRemoved() {
+    var tbody = $('removed-rows');
+    tbody.textContent = '';
+    removed.forEach(function (o) {
+      var who = o.display_name || o.email;
+      var tr = el('tr');
+      var cell = el('td');
+      cell.appendChild(el('span', { class: 'u-name' }, who));
+      cell.appendChild(el('span', { class: 'u-email' }, o.email || ''));
+      tr.appendChild(cell);
+      tr.appendChild(el('td', null, role(o.role).label));
+      tr.appendChild(el('td', null, fmtDate(o.removed_at)));
+      var actions = el('td', { class: 'u-actions' });
+      actions.appendChild(button('Restore', function () {
+        act('fleet_restore_operator', { p_operator: o.id }, who + ' restored as Suspended. Reactivate them when ready.');
+      }));
+      tr.appendChild(actions);
+      tbody.appendChild(tr);
+    });
+    $('removed-block').hidden = removed.length === 0;
   }
 
   function roleOptions(select, current) {

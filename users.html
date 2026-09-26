@@ -144,7 +144,7 @@
               <div class="table-wrap">
                 <table class="users-table">
                   <thead>
-                    <tr><th scope="col">User</th><th scope="col">Status</th><th scope="col">Role</th><th scope="col">Venues</th><th scope="col">Joined</th><th scope="col"><span class="sr-only">Actions</span></th></tr>
+                    <tr><th scope="col">User</th><th scope="col">Status</th><th scope="col">Role</th><th scope="col">Venues</th><th scope="col">Last sign-in</th><th scope="col"><span class="sr-only">Actions</span></th></tr>
                   </thead>
                   <tbody id="user-rows"></tbody>
                 </table>
@@ -161,6 +161,19 @@
                 </table>
               </div>
               <p class="users-empty" id="invites-empty" hidden>No pending invites.</p>
+
+              <div id="removed-block" hidden>
+                <h2 class="users-subhead">Removed users</h2>
+                <p class="auth-hint">Removed users cannot sign in. Restoring brings them back as Suspended so you can reactivate them on purpose.</p>
+                <div class="table-wrap">
+                  <table class="users-table">
+                    <thead>
+                      <tr><th scope="col">User</th><th scope="col">Role</th><th scope="col">Removed</th><th scope="col"><span class="sr-only">Actions</span></th></tr>
+                    </thead>
+                    <tbody id="removed-rows"></tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </div>
