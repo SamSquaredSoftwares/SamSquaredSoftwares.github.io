@@ -256,6 +256,7 @@
         var suspending = o.status === 'active';
         actions.appendChild(button(suspending ? 'Suspend' : 'Reactivate', function () {
           if (suspending && !confirm('Suspend ' + (o.display_name || o.email) + '? They are signed out and cannot sign in until you reactivate them.')) return;
+          if (!suspending && !confirm('Reactivate ' + (o.display_name || o.email) + ' as ' + r.label + '? They can sign in again straight away.')) return;
           act('fleet_set_operator_status', { p_operator: o.id, p_status: suspending ? 'suspended' : 'active' },
             (o.display_name || o.email) + (suspending ? ' suspended.' : ' reactivated.'));
         }, suspending ? 'danger' : null));
