@@ -44,6 +44,10 @@ a:hover { color: var(--white); }
   overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
 }
 
+/* Spam trap on the contact form: off screen and out of the tab order, so only
+   bots fill it in. Not .sr-only, because screen readers should skip it too. */
+.hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
 .container { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
 
 /* ---------- Navigation ---------- */
