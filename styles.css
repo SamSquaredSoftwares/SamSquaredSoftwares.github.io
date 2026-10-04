@@ -62,7 +62,9 @@ a:hover { color: var(--white); }
   display: flex; align-items: center; justify-content: space-between; height: 68px;
 }
 .nav-brand { display: flex; align-items: center; gap: 10px; }
-.nav-brand img { height: 34px; width: auto; }
+/* logo.jpg is drawn on pure black; `lighten` lets that black matte take the page colour, so no
+   dark box shows on --bg (#05070d) or the translucent nav. The chrome and blue glow are lighter and stay. */
+.nav-brand img { height: 34px; width: auto; mix-blend-mode: lighten; }
 .nav-links { display: flex; align-items: center; gap: 6px; list-style: none; margin: 0; padding: 0; }
 .nav-links > li { position: relative; }
 .nav-links > li > a, .nav-item-toggle {
@@ -109,7 +111,7 @@ a:hover { color: var(--white); }
   border-bottom: 1px solid var(--border);
 }
 .hero-inner { max-width: 820px; margin: 0 auto; }
-.hero-logo { height: 96px; width: auto; margin-bottom: 26px; }
+.hero-logo { height: 96px; width: auto; margin-bottom: 26px; mix-blend-mode: lighten; }
 .hero-title { font-size: clamp(34px, 6vw, 58px); line-height: 1.08; margin: 0 0 20px; letter-spacing: -.5px; }
 .accent { color: var(--blue-bright); }
 .hero-sub { font-size: clamp(16px, 2.4vw, 20px); color: var(--muted); margin: 0 auto 34px; max-width: 660px; }
@@ -193,7 +195,7 @@ form.contact input:focus, form.contact textarea:focus, form.contact select:focus
 /* ---------- Footer ---------- */
 .footer { border-top: 1px solid var(--border); background: var(--bg-2); padding: 50px 0 30px; margin-top: 20px; }
 .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 30px; }
-.footer-brand img { height: 30px; width: auto; margin-bottom: 12px; }
+.footer-brand img { height: 30px; width: auto; margin-bottom: 12px; mix-blend-mode: lighten; }
 .footer-brand p { color: var(--muted); max-width: 320px; font-size: 14.5px; }
 .footer h2, .footer h4 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin: 0 0 14px; }
 .footer ul { list-style: none; padding: 0; margin: 0; }
