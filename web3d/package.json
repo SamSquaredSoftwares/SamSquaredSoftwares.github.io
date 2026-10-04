@@ -1,0 +1,14 @@
+{
+  "name": "samsquared-web3d",
+  "private": true,
+  "description": "Builds the 3D demo on websites.html: three.js scene + page script, bundled by esbuild into /assets/web3d/.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "node build.mjs && git status --porcelain -- ../assets/web3d && test -z \"$(git status --porcelain -- ../assets/web3d)\""
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10",
+    "three": "0.186.1"
+  }
+}
