@@ -102,6 +102,10 @@ a:hover { color: var(--white); }
 .btn-ghost { border: 1px solid var(--border); color: var(--text); }
 .btn-ghost:hover { border-color: var(--blue); color: var(--white); }
 .btn-block { width: 100%; border: none; }
+/* WhatsApp green, so people spot the chat option at a glance. */
+.btn-whatsapp { display: inline-flex; align-items: center; gap: 10px; background: #25d366; color: #04121f; box-shadow: 0 8px 30px rgba(37,211,102,.22); }
+.btn-whatsapp:hover { background: #4be083; color: #04121f; transform: translateY(-1px); }
+.btn-whatsapp svg { flex: none; }
 
 /* ---------- Hero ---------- */
 .hero {
@@ -183,6 +187,7 @@ a:hover { color: var(--white); }
 .contact-info .line { display: flex; gap: 10px; margin-bottom: 14px; }
 .contact-info .line b { color: var(--white); }
 .contact-info .note { margin-top: 24px; color: var(--muted); font-size: 14px; }
+.contact-info .btn-whatsapp { margin-top: 6px; }
 form.contact { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 30px; }
 form.contact label { display: block; font-size: 14px; margin: 0 0 6px; color: var(--muted); }
 form.contact input, form.contact textarea, form.contact select {
@@ -229,7 +234,7 @@ form.contact input:focus, form.contact textarea:focus, form.contact select:focus
     transition-duration: .01ms !important;
     scroll-behavior: auto !important;
   }
-  .card:hover, .btn-primary:hover { transform: none; }
+  .card:hover, .btn-primary:hover, .btn-whatsapp:hover { transform: none; }
 }
 
 /* ---------- Legal / policy pages ---------- */
