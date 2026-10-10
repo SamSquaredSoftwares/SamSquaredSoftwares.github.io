@@ -35,6 +35,10 @@
   var nodes = [];
   var tenants = {};
   var lastInviteText = '';
+  // True once samepos-fleet has fleet_remove_operator / fleet_restore_operator and
+  // the sign-in trigger; fleet_operators() then also returns a 'removed' list.
+  var hasRemove = false;
+  var refreshSeq = 0;
 
   function $(id) { return document.getElementById(id); }
 
@@ -59,7 +63,9 @@
 
   function errText(err) {
     if (!err) return 'Something went wrong.';
-    return err.message || String(err);
+    var text = err.message || String(err);
+    if (/failed to fetch|networkerror|load failed/i.test(text)) return 'Could not reach the server. Check your connection and try again.';
+    return text;
   }
 
   function fmtAgo(iso) {
@@ -98,7 +104,7 @@
     db.auth.getSession().then(function (res) {
       var session = res.data && res.data.session;
       if (session) loadMe(session.user); else show('sign-in');
-    });
+    }).catch(function () { show('sign-in'); });
   }
 
   function loadMe(user) {
@@ -116,7 +122,8 @@
         $('me-name').textContent = row.display_name || row.email;
         show('app');
         refresh();
-      });
+      })
+      .catch(function (err) { deny('Could not check your account: ' + errText(err)); });
   }
 
   function deny(text) {
@@ -138,6 +145,10 @@
           form.password.value = '';
           say('si-msg', '');
           loadMe(res.data.user);
+        })
+        .catch(function (err) {
+          btn.disabled = false;
+          say('si-msg', errText(err), 'error');
         });
     });
     document.querySelectorAll('[data-sign-out]').forEach(function (b) {
@@ -147,18 +158,38 @@
 
   // ---------- Data ----------
 
+  // PostgREST caps each response (1000 rows by default), so page until a short page.
+  function fetchAll(table, cols, filter) {
+    var PAGE = 1000;
+    var rows = [];
+    function next(from) {
+      var q = db.from(table).select(cols).order('name').order('id').range(from, from + PAGE - 1);
+      if (filter) q = filter(q);
+      return q.then(function (res) {
+        if (res.error) return res;
+        rows = rows.concat(res.data || []);
+        return res.data && res.data.length === PAGE ? next(from + PAGE) : { data: rows, error: null };
+      });
+    }
+    return next(0);
+  }
+
   function refresh() {
+    var seq = ++refreshSeq;
     say('app-msg', 'Loading…');
     return Promise.all([
       db.rpc('fleet_operators'),
-      db.from('node').select('id, name, tenant_id').eq('is_retired', false).order('name'),
-      db.from('tenant').select('id, name').order('name')
+      fetchAll('node', 'id, name, tenant_id', function (q) { return q.eq('is_retired', false); }),
+      fetchAll('tenant', 'id, name')
     ]).then(function (r) {
+      // A newer refresh has started; let it own the page.
+      if (seq !== refreshSeq) return false;
       var ops = r[0], nd = r[1], tn = r[2];
       var err = ops.error || nd.error || tn.error || (ops.data && ops.data.error);
       if (err) { say('app-msg', 'Could not load users: ' + errText(err), 'error'); return false; }
       operators = ops.data.operators || [];
       invites = ops.data.invites || [];
+      hasRemove = Array.isArray(ops.data.removed);
       removed = ops.data.removed || [];
       nodes = nd.data || [];
       tenants = {};
@@ -166,6 +197,9 @@
       say('app-msg', '');
       render();
       return true;
+    }).catch(function (err) {
+      if (seq === refreshSeq) say('app-msg', 'Could not load users: ' + errText(err), 'error');
+      return false;
     });
   }
 
@@ -178,6 +212,9 @@
         if (loaded) say('app-msg', okText, 'ok');
         return true;
       });
+    }).catch(function (err) {
+      say('app-msg', errText(err), 'error');
+      return false;
     });
   }
 
@@ -244,7 +281,11 @@
       }
       tr.appendChild(venues);
 
-      tr.appendChild(el('td', { title: 'Joined ' + fmtDate(o.created_at) }, fmtAgo(o.last_login_at)));
+      if (hasRemove) {
+        tr.appendChild(el('td', { title: 'Joined ' + fmtDate(o.created_at) }, fmtAgo(o.last_login_at)));
+      } else {
+        tr.appendChild(el('td', { class: 'muted', title: 'Sign-ins are not recorded yet. Joined ' + fmtDate(o.created_at) }, '—'));
+      }
 
       var actions = el('td', { class: 'u-actions' });
       if (r.venues) {
@@ -255,16 +296,21 @@
       if (!self) {
         var suspending = o.status === 'active';
         actions.appendChild(button(suspending ? 'Suspend' : 'Reactivate', function () {
-          if (suspending && !confirm('Suspend ' + (o.display_name || o.email) + '? They are signed out and cannot sign in until you reactivate them.')) return;
+          var effect = hasRemove
+            ? 'They are signed out and cannot sign in until you reactivate them.'
+            : 'They lose access to the console straight away.';
+          if (suspending && !confirm('Suspend ' + (o.display_name || o.email) + '? ' + effect)) return;
           if (!suspending && !confirm('Reactivate ' + (o.display_name || o.email) + ' as ' + r.label + '? They can sign in again straight away.')) return;
           act('fleet_set_operator_status', { p_operator: o.id, p_status: suspending ? 'suspended' : 'active' },
             (o.display_name || o.email) + (suspending ? ' suspended.' : ' reactivated.'));
         }, suspending ? 'danger' : null));
-        actions.appendChild(button('Remove', function () {
-          var who = o.display_name || o.email;
-          if (!confirm('Remove ' + who + '? They are signed out, cannot sign in, and move to Removed users. You can restore them later.')) return;
-          act('fleet_remove_operator', { p_operator: o.id }, who + ' removed.');
-        }, 'danger'));
+        if (hasRemove) {
+          actions.appendChild(button('Remove', function () {
+            var who = o.display_name || o.email;
+            if (!confirm('Remove ' + who + '? They are signed out, cannot sign in, and move to Removed users. You can restore them later.')) return;
+            act('fleet_remove_operator', { p_operator: o.id }, who + ' removed.');
+          }, 'danger'));
+        }
       }
       tr.appendChild(actions);
       tbody.appendChild(tr);
@@ -348,14 +394,21 @@
     }
     if (next === 'super_admin' && !confirm('Make ' + who + ' a super admin? They will be able to manage every user.')) return revert();
     if (role(o.role).venues && !confirm(who + ' will lose their venue links and see every client. Continue?')) return revert();
+    sel.disabled = true;
     act('fleet_set_operator_role', { p_operator: o.id, p_role: next }, who + ' is now ' + role(next).label + '.')
-      .then(function (ok) { if (!ok) revert(); });
+      .then(function (ok) {
+        if (!ok) revert();
+        sel.disabled = false;
+      });
   }
 
   // ---------- Venue picker ----------
 
   function buildPicker(container, mode, selected, name) {
     container.textContent = '';
+    // A radio group keeps only the last checked box, so with several venues
+    // preselected a GM save would silently drop the rest: make them choose.
+    if (mode === 'one' && selected.length > 1) selected = [];
     if (!nodes.length) {
       container.appendChild(el('p', { class: 'auth-hint' }, 'No venues exist yet.'));
       return;
@@ -390,7 +443,11 @@
     var who = o.display_name || o.email;
     var current = (o.venues || []).map(function (v) { return v.node_id; });
     $('vd-title').textContent = (targetRole === o.role ? 'Venues for ' : 'Make ' + r.label + ': ') + who;
-    $('vd-hint').textContent = r.venues === 'one' ? 'A general manager runs exactly one venue.' : 'Pick every venue this owner should see.';
+    $('vd-hint').textContent = r.venues !== 'one'
+      ? 'Pick every venue this owner should see.'
+      : current.length > 1
+        ? 'A general manager runs exactly one venue. Pick the one they keep.'
+        : 'A general manager runs exactly one venue.';
     buildPicker($('vd-options'), r.venues, current, 'vd-venue');
     say('vd-msg', '');
     dialogDone = { o: o, role: targetRole, cancel: onCancel };
@@ -400,6 +457,8 @@
   function initDialog() {
     var dlg = $('venue-dialog');
     function close(cancelled) {
+      // Once a save is in flight it cannot be called back, so cancel waits for it.
+      if (cancelled && dialogDone && dialogDone.saving) return;
       if (cancelled && dialogDone && dialogDone.cancel) dialogDone.cancel();
       dialogDone = null;
       if (dlg.open) dlg.close();
@@ -415,28 +474,54 @@
       if (!ids.length) return say('vd-msg', 'Pick at least one venue.', 'error');
       var who = job.o.display_name || job.o.email;
       var btn = dlg.querySelector('button[type=submit]');
+      var roleChanged = job.role !== job.o.role;
+      var roleLanded = false;
+      job.saving = true;
       btn.disabled = true;
+      $('vd-cancel').disabled = true;
       say('vd-msg', 'Saving…');
 
+      function settle() {
+        job.saving = false;
+        btn.disabled = false;
+        $('vd-cancel').disabled = false;
+      }
+
       // Role first: fleet_set_operator_venues only accepts owners and GMs.
-      var step = job.role === job.o.role
-        ? Promise.resolve({})
-        : db.rpc('fleet_set_operator_role', { p_operator: job.o.id, p_role: job.role });
+      var step = roleChanged
+        ? db.rpc('fleet_set_operator_role', { p_operator: job.o.id, p_role: job.role })
+        : Promise.resolve({});
       step.then(function (res) {
         if (res.error) throw res.error;
+        roleLanded = roleChanged;
         return db.rpc('fleet_set_operator_venues', { p_operator: job.o.id, p_node_ids: ids });
       }).then(function (res) {
         if (res.error) throw res.error;
-        btn.disabled = false;
+        settle();
         close(false);
         return refresh().then(function (loaded) {
           if (loaded) say('app-msg', who + ' saved as ' + role(job.role).label + '.', 'ok');
         });
       }).catch(function (err) {
-        btn.disabled = false;
-        say('vd-msg', errText(err), 'error');
-        // A role change may already have landed; reload so the table tells the truth.
-        refresh();
+        if (!roleLanded) {
+          settle();
+          say('vd-msg', errText(err), 'error');
+          return;
+        }
+        // The two calls are separate, so undo the role rather than leave them
+        // venue-scoped with no venues.
+        return db.rpc('fleet_set_operator_role', { p_operator: job.o.id, p_role: job.o.role })
+          .then(function (undo) { if (undo.error) throw undo.error; })
+          .then(function () {
+            say('vd-msg', 'Venues were not saved, so ' + who + ' is back to ' + role(job.o.role).label + ': ' + errText(err), 'error');
+          }, function (undoErr) {
+            say('vd-msg', 'Venues were not saved and the role change could not be undone (' + errText(undoErr) +
+              '). ' + who + ' is now ' + role(job.role).label + ' with no venues: try again or change their role.', 'error');
+          })
+          .then(function () {
+            settle();
+            refresh();
+          });
       });
     });
   }
@@ -459,9 +544,9 @@
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var name = form.name.value.trim();
-      var email = form.email.value.trim().toLowerCase();
-      var r = role(form.role.value);
+      var name = $('u-name').value.trim();
+      var email = $('u-email').value.trim().toLowerCase();
+      var r = role($('u-role').value);
       var ids = r.venues ? picked($('u-venue-options')) : [];
       $('invite-next').hidden = true;
 
@@ -491,6 +576,9 @@
         $('invite-next-text').textContent = 'No email is sent. Send them this message:';
         $('invite-next').hidden = false;
         refresh();
+      }).catch(function (err) {
+        btn.disabled = false;
+        say('add-msg', errText(err), 'error');
       });
     });
 
