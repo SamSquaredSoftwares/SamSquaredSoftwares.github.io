@@ -59,6 +59,43 @@
       }
     });
 
+    // Contact form: FormSubmit still handles the email. Also send a copy to our
+    // own endpoint so every lead is stored. A beacon survives the page
+    // navigating away and never blocks or delays the real submission.
+    var leadForm = document.querySelector('form[data-lead-endpoint]');
+    if (leadForm && navigator.sendBeacon && window.FormData) {
+      leadForm.addEventListener('submit', function () {
+        try {
+          navigator.sendBeacon(leadForm.getAttribute('data-lead-endpoint'), new FormData(leadForm));
+        } catch (err) {
+          // Storage is a bonus; the email path must always go through.
+        }
+      });
+    }
+
+    // Website packages link here as /contact.html?package=landing (or five,
+    // nine). Preselect that package and switch the copy from demo to quote.
+    var interest = document.getElementById('interest');
+    var pkg = null;
+    try {
+      pkg = new URLSearchParams(window.location.search).get('package');
+    } catch (err) {
+      pkg = null;
+    }
+    if (interest && pkg) {
+      for (var i = 0; i < interest.options.length; i++) {
+        if (interest.options[i].getAttribute('data-package') !== pkg) continue;
+        interest.selectedIndex = i;
+        var heading = document.querySelector('.page-head h1');
+        var intro = document.querySelector('.page-head p');
+        var submit = document.querySelector('form.contact [type="submit"]');
+        if (heading) heading.textContent = 'Get your website quote';
+        if (intro) intro.textContent = 'Tell us about your business and we\'ll come back with a plan and a quote.';
+        if (submit) submit.textContent = 'Request a quote';
+        break;
+      }
+    }
+
     // Keep the footer copyright year current
     var year = document.getElementById('year');
     if (year) year.textContent = new Date().getFullYear();

@@ -10,6 +10,7 @@ Usage: python3 scripts/check_site.py [root]
 Exits non-zero and prints every problem found.
 """
 
+import hashlib
 import json
 import os
 import re
@@ -23,6 +24,15 @@ VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link",
 # These pages are deliberately noindex and carry no canonical or social tags.
 NOINDEX = {"404.html", "users.html"}
 BARE_AMP = re.compile(r"&(?!(?:[a-zA-Z][a-zA-Z0-9]*|#[0-9]+|#[xX][0-9a-fA-F]+);)")
+# Cloudflare tells browsers to keep CSS and JS for 4 hours, so these fixed-name
+# files carry ?v=<content hash> (scripts/stamp_assets.py). A missing or stale
+# stamp means returning visitors get the old file after a deploy.
+STAMPED = ("styles.css", "script.js", "users.js", "assets/web3d/websites.js")
+
+
+def asset_stamp(path):
+    with open(path, "rb") as fh:
+        return hashlib.sha256(fh.read()).hexdigest()[:10]
 
 
 class Page(HTMLParser):
@@ -126,6 +136,14 @@ def check_page(name, src, errors):
             bad("<img src=%s> has no alt attribute" % src_attr)
         if "width" not in img or "height" not in img:
             bad("<img src=%s> has no width/height (causes layout shift)" % src_attr)
+
+    for href in page.assets:
+        path, _, query = href.split("#")[0].partition("?")
+        stamped = path.lstrip("/")
+        if stamped in STAMPED and os.path.exists(stamped):
+            want = "v=" + asset_stamp(stamped)
+            if query != want:
+                bad("%s needs ?%s (run python3 scripts/stamp_assets.py)" % (path, want))
 
     for href in page.links + page.assets:
         target = local_path(href)

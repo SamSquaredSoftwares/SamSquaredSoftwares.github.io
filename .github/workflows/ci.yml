@@ -38,3 +38,58 @@ jobs:
 
       - name: Check JavaScript syntax
         run: node --check script.js && node --check users.js
+
+  # websites.html loads /assets/web3d/, which is built from web3d/src by esbuild.
+  # Rebuild it and fail if the committed files are stale or hand-edited.
+  web3d:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web3d
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web3d/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Rebuild and compare with the committed bundle
+        run: npm run check
+
+  worker:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: workers/leads
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: workers/leads/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      # Runs the lead Worker in workerd with a local D1 and rate limiter.
+      - name: Test the lead Worker
+        run: npm test
+
+      # Validates wrangler.jsonc and bundles the Worker without deploying.
+      - name: Check the Worker builds
+        run: npx wrangler deploy --dry-run --outdir "$RUNNER_TEMP/worker"
