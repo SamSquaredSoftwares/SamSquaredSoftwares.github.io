@@ -53,7 +53,23 @@ Always deploy through this workflow, never a bare `wrangler deploy`. On a fresh 
 
 If the zone is in a different account from the token, the deploy fails with "Could not find zone". Make the token in the other account.
 
-### 4. Optional: Slack alerts
+### 4. HubSpot: contact + deal for every lead
+
+`book.html` (the `/book` page) and `contact.html` both post here. When the secret `HUBSPOT_TOKEN` is set, each new lead:
+
+1. upserts a HubSpot contact by email (a returning visitor updates their record, no duplicate)
+2. opens a deal named `Demo request | <venue>` in the default pipeline, first stage, linked to that contact, with the booking details (interest, venue type, preferred day and time, phone) in the deal description
+
+If D1 is down but HubSpot works, the lead still counts as saved. Double submits within 10 minutes open one deal, not two.
+
+Setup:
+
+1. HubSpot > Settings > Integrations > Private Apps > Create. Name it `website-leads`. Scopes: `crm.objects.contacts.write`, `crm.objects.contacts.read`, `crm.objects.deals.write`, `crm.objects.deals.read`. Copy the token.
+2. Cloudflare dashboard > Workers & Pages > `samsquared-leads` > Settings > Variables and Secrets > add a **secret** `HUBSPOT_TOKEN`.
+
+The token is never logged, even when a HubSpot call fails.
+
+### 5. Optional: Slack alerts
 
 1. Create a Slack incoming webhook for the channel you want.
 2. In the Cloudflare dashboard, go to Workers & Pages > `samsquared-leads` > Settings > Variables and Secrets.

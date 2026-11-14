@@ -577,3 +577,16 @@ form.contact .venue-opt label, .venue-opt label { display: inline; margin: 0; co
   .w3-js .w3-reveal { opacity: 1; translate: none; }
   .web-plans .plan, .w3-range-card { transform: none; }
 }
+
+/* /book demo booking page */
+.booked-msg { display: none; max-width: 960px; margin: 0 auto 32px; padding: 20px 24px; border: 1px solid rgba(37,211,102,.45); border-radius: 14px; background: rgba(37,211,102,.08); }
+.booked-msg:target { display: block; }
+.booked-msg h2 { margin: 0 0 6px; font-size: 20px; color: var(--white); }
+.booked-msg p { margin: 0; color: var(--muted); }
+.book-points { margin: 0 0 24px; padding-left: 18px; color: var(--muted); }
+.book-points li { margin-bottom: 10px; }
+.book-points b { color: var(--white); }
+.book-when { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.book-when > div { display: flex; flex-direction: column; }
+.form-privacy { font-size: 13px; color: var(--muted); margin: 6px 0 14px; }
+@media (max-width: 560px) { .book-when { grid-template-columns: 1fr; } }
