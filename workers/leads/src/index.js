@@ -1,7 +1,9 @@
 /* Lead capture for the contact form.
    The form still posts to FormSubmit, which emails the team. script.js also
    beacons a copy of each submission to POST /api/lead, and this Worker stores
-   it in D1 so every lead is kept somewhere we own, then optionally pings Slack. */
+   it in D1 so every lead is kept somewhere we own, then optionally pings Slack
+   and, when HUBSPOT_TOKEN is set, creates the HubSpot contact and a deal.
+   book.html (the /book page) posts here too, with a few extra fields. */
 
 const ENDPOINT = '/api/lead';
 // Room for a long message in any script (3 bytes per character in UTF-8).
@@ -17,9 +19,20 @@ const FIELDS = {
   venue: { max: 200 },
   interest: { max: 100 },
   message: {},
+  // Sent only by book.html.
+  phone: { max: 40 },
+  venue_type: { max: 100 },
+  preferred_date: { max: 10 },
+  preferred_time: { max: 40 },
 };
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const PHONE = /^[0-9+()\-\s]{6,40}$/;
+
+const HUBSPOT = 'https://api.hubapi.com';
+// HubSpot-defined association type for deal -> contact.
+const DEAL_TO_CONTACT = 3;
 
 export default {
   async fetch(request, env, ctx) {
@@ -53,6 +66,10 @@ export default {
       lead[field] = value || null;
     }
     if (!EMAIL.test(lead.email)) return reply(400, { error: 'invalid_email', field: 'email' });
+    if (lead.phone && !PHONE.test(lead.phone)) return reply(400, { error: 'invalid_phone', field: 'phone' });
+    if (lead.preferred_date && !ISO_DATE.test(lead.preferred_date)) {
+      return reply(400, { error: 'invalid_date', field: 'preferred_date' });
+    }
 
     lead.source = sourcePage(request, origin);
     lead.country = country(request);
@@ -62,6 +79,9 @@ export default {
       result = await insertLead(env.DB, lead);
     } catch (err) {
       log('lead.store_failed', { error: err && err.name, country: lead.country });
+      // D1 is down, but HubSpot can still hold the lead. Only fail the
+      // request when neither place has it.
+      if (env.HUBSPOT_TOKEN && await syncHubSpot(env.HUBSPOT_TOKEN, lead)) return reply(204);
       return reply(503, { error: 'store_failed' });
     }
 
@@ -72,6 +92,9 @@ export default {
     if (stored && env.SLACK_WEBHOOK_URL) {
       ctx.waitUntil(notifySlack(env.SLACK_WEBHOOK_URL, lead));
     }
+    if (stored && env.HUBSPOT_TOKEN) {
+      ctx.waitUntil(syncHubSpot(env.HUBSPOT_TOKEN, lead));
+    }
     return reply(204);
   },
 };
@@ -80,14 +103,16 @@ export default {
 // also makes a retry safe if a failed attempt had in fact been written.
 async function insertLead(db, lead) {
   const statement = db.prepare(
-    `INSERT INTO leads (name, email, venue, interest, message, source, country)
-     SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7
+    `INSERT INTO leads (name, email, venue, interest, message, source, country,
+                        phone, venue_type, preferred_date, preferred_time)
+     SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?9, ?10, ?11, ?12
      WHERE NOT EXISTS (
        SELECT 1 FROM leads
        WHERE email = ?2 AND message IS ?5 AND created_at > datetime('now', ?8)
      )`
   ).bind(lead.name, lead.email, lead.venue, lead.interest, lead.message,
-         lead.source, lead.country, DUPLICATE_WINDOW);
+         lead.source, lead.country, DUPLICATE_WINDOW,
+         lead.phone, lead.venue_type, lead.preferred_date, lead.preferred_time);
 
   for (let attempt = 1; ; attempt++) {
     try {
@@ -173,6 +198,70 @@ function sourcePage(request, origin) {
 
 function country(request) {
   return (request.cf && request.cf.country) || null;
+}
+
+// Puts the lead in the CRM: upsert the contact by email (a returning visitor
+// updates their record instead of making a duplicate), then open a deal in
+// the default pipeline's first stage, linked to that contact.
+// Returns true when both calls worked. Never throws, never logs the token.
+async function syncHubSpot(token, lead) {
+  const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+  const [firstname, ...rest] = lead.name.split(/\s+/);
+  const contact = { email: lead.email, firstname };
+  if (rest.length) contact.lastname = rest.join(' ');
+  if (lead.venue) contact.company = lead.venue;
+  if (lead.phone) contact.phone = lead.phone;
+
+  try {
+    const upsert = await fetch(`${HUBSPOT}/crm/v3/objects/contacts/batch/upsert`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ inputs: [{ idProperty: 'email', id: lead.email, properties: contact }] }),
+    });
+    if (!upsert.ok) {
+      log('hubspot.contact_failed', { status: upsert.status });
+      return false;
+    }
+    const contactId = (await upsert.json()).results[0].id;
+
+    const deal = await fetch(`${HUBSPOT}/crm/v3/objects/deals`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        properties: {
+          dealname: `Demo request | ${lead.venue || lead.name}`,
+          pipeline: 'default',
+          dealstage: 'appointmentscheduled',
+          description: dealNotes(lead),
+        },
+        associations: [{
+          to: { id: contactId },
+          types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: DEAL_TO_CONTACT }],
+        }],
+      }),
+    });
+    if (!deal.ok) {
+      log('hubspot.deal_failed', { status: deal.status });
+      return false;
+    }
+    log('hubspot.synced', { deal: (await deal.json()).id });
+    return true;
+  } catch (err) {
+    log('hubspot.failed', { error: err && err.name });
+    return false;
+  }
+}
+
+function dealNotes(lead) {
+  return [
+    lead.interest && `Interested in: ${lead.interest}`,
+    lead.venue_type && `Venue type: ${lead.venue_type}`,
+    (lead.preferred_date || lead.preferred_time) &&
+      `Preferred demo: ${[lead.preferred_date, lead.preferred_time].filter(Boolean).join(', ')}`,
+    lead.phone && `Phone: ${lead.phone}`,
+    lead.source && `From page: ${lead.source}`,
+    lead.message && `\n${lead.message}`,
+  ].filter(Boolean).join('\n').slice(0, 65000);
 }
 
 async function notifySlack(webhook, lead) {
